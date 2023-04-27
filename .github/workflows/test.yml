@@ -21,4 +21,12 @@ jobs:
       - uses: actions/checkout@v3
       - uses: ./
         with:
-          milliseconds: 1000
+          first-name: $USER
+          first_name: echo $USER
+          env: |
+            A: $USER
+            B: echo 1
+            C: echo ${USER//r/p}
+      - run: env | sort
+        env:
+          AWESOME: ${{ env.FIRST_NAME }}

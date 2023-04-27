@@ -1,11 +1,15 @@
-name: 'Your name here'
+name: 'Set up environment variables action'
 description: 'Provide a description here'
 author: 'Your name or organization here'
 inputs:
-  milliseconds: # change this
-    required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+  env:
+    description: 'key/val pairs'
+    required: false
+  shell:
+    description: 'The shell to use'
+    required: false
+    default: 'bash'
+
 runs:
   using: 'node16'
   main: 'dist/index.js'
