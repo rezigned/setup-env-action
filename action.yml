@@ -1,14 +1,14 @@
 name: 'Set up environment variables action'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+description: 'Set up environment variables where the values are dynamically evaluated by shell'
+author: 'Marut Khumtong'
 inputs:
   env:
-    description: 'key/val pairs'
+    description: 'The key-value pairs of variables in YAML format where the key is the variable name and the value is a shell expression.'
     required: false
   shell:
-    description: 'The shell to use'
+    description: 'The shell to use. If not provided, it will use the default `sh` shell.'
     required: false
-    default: 'bash'
+    default: 'sh'
 
 runs:
   using: 'node16'

@@ -46,6 +46,12 @@ const INPUT_PREFIX = 'INPUT_';
 const INPUT_SHELL = 'shell';
 const INPUT_ENV = 'env';
 exports.DEFAULT_SHELL = 'sh';
+/**
+ * Find all INPUT_* from ENV and return the key-value pairs in tuple form.
+ *
+ * @param envs
+ * @returns Inputs
+ */
 function getInputs(envs) {
     return Object.keys(envs)
         .filter(key => key.startsWith(INPUT_PREFIX) && key !== `${INPUT_PREFIX}ENV`)
@@ -54,6 +60,11 @@ function getInputs(envs) {
     }, []);
 }
 exports.getInputs = getInputs;
+/**
+ * Read input from `env` and return the key-value pairs in tuple form.
+ *
+ * @returns Inputs
+ */
 function getEnvInput() {
     return core
         .getMultilineInput(INPUT_ENV)
@@ -76,6 +87,12 @@ function getCurrentShell() {
         exports.DEFAULT_SHELL);
 }
 exports.getCurrentShell = getCurrentShell;
+/**
+ * Evaluate the given input string and return the result.
+ *
+ * @param s string
+ * @returns Promise<string>
+ */
 function evaluate(s) {
     return __awaiter(this, void 0, void 0, function* () {
         if (isPlainValue(s)) {
@@ -87,6 +104,12 @@ function evaluate(s) {
     });
 }
 exports.evaluate = evaluate;
+/**
+ * Execute the whole pipeline (i.e. combine inputs, evaulate, export, etc.)
+ *
+ * @param env
+ * @returns
+ */
 function execute(env) {
     return __awaiter(this, void 0, void 0, function* () {
         return pipe(env)(getInputs, concat(getEnvInput()), map(([k, v]) => __awaiter(this, void 0, void 0, function* () { return [k, yield evaluate(v)]; })), Promise.all.bind(Promise), (r) => __awaiter(this, void 0, void 0, function* () {

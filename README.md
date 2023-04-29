@@ -1,118 +1,78 @@
-<p align="center">
-  <a href="https://github.com/actions/typescript-action/actions"><img alt="typescript-action status" src="https://github.com/actions/typescript-action/workflows/build-test/badge.svg"></a>
+# Setup Environment Variable (dynamically)
+
+<p>
+  <a href="https://github.com/rezigned/setup-env-action/actions"><img alt="setup-env-action status" src="https://github.com/rezigned/setup-env-action/workflows/build-test/badge.svg"></a>
 </p>
+
+This action sets up environment variables by evaluating the values with shell command first.
+
+## Usage
+
+**Basic**:
 
 ```yaml
 steps:
   - uses: @rezigned/setup-env-action
     with:
-      USERNAME: 1
-
       env: |
-        USERNAME: echo "1"
+        GIT_SHORT_SHA: $(git rev-parse --short HEAD)
 
   - run: |
-      echo ${{ env.USERNAME }}
+      echo ${{ env.GIT_SHORT_SHA }}
 ```
+**Using variable name at input-level**:
 
-# Create a JavaScript Action using TypeScript
-
-Use this template to bootstrap the creation of a TypeScript action.:rocket:
-
-This template includes compilation support, tests, a validation workflow, publishing, and versioning guidance.
-
-If you are new, there's also a simpler introduction.  See the [Hello World JavaScript Action](https://github.com/actions/hello-world-javascript-action)
-
-## Create an action from this template
-
-Click the `Use this Template` and provide the new repo details for your action
-
-## Code in Main
-
-> First, you'll need to have a reasonably modern version of `node` handy. This won't work with versions older than 9, for instance.
-
-Install the dependencies
-```bash
-$ npm install
-```
-
-Build the typescript and package it for distribution
-```bash
-$ npm run build && npm run package
-```
-
-Run the tests :heavy_check_mark:
-```bash
-$ npm test
-
- PASS  ./index.test.js
-  ✓ throws invalid number (3ms)
-  ✓ wait 500 ms (504ms)
-  ✓ test runs (95ms)
-
-...
-```
-
-## Change action.yml
-
-The action.yml defines the inputs and output for your action.
-
-Update the action.yml with your name, description, inputs and outputs for your action.
-
-See the [documentation](https://help.github.com/en/articles/metadata-syntax-for-github-actions)
-
-## Change the Code
-
-Most toolkit and CI/CD operations involve async operations so the action is run in an async function.
-
-```javascript
-import * as core from '@actions/core';
-...
-
-async function run() {
-  try {
-      ...
-  }
-  catch (error) {
-    core.setFailed(error.message);
-  }
-}
-
-run()
-```
-
-See the [toolkit documentation](https://github.com/actions/toolkit/blob/master/README.md#packages) for the various packages.
-
-## Publish to a distribution branch
-
-Actions are run from GitHub repos so we will checkin the packed dist folder.
-
-Then run [ncc](https://github.com/zeit/ncc) and push the results:
-```bash
-$ npm run package
-$ git add dist
-$ git commit -a -m "prod dependencies"
-$ git push origin releases/v1
-```
-
-Note: We recommend using the `--license` option for ncc, which will create a license file for all of the production node modules used in your project.
-
-Your action is now published! :rocket:
-
-See the [versioning documentation](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md)
-
-## Validate
-
-You can now validate the action by referencing `./` in a workflow in your repo (see [test.yml](.github/workflows/test.yml))
+> **Warning**: Although this works. Github will send a warning message like 'VAR NAME' is not a valid input. This is because Github only allows input names defined in `action.yml`.
 
 ```yaml
-uses: ./
-with:
-  milliseconds: 1000
+steps:
+  - uses: @rezigned/setup-env-action
+    with:
+      GIT_SHORT_SHA: $(git rev-parse --short HEAD)
 ```
 
-See the [actions tab](https://github.com/actions/typescript-action/actions) for runs of this action! :rocket:
+**Specifying shell**:
 
-## Usage:
+The `sh` shell is used by default. User can speicfy other shell by using `shell` input. For example:
 
-After testing you can [create a v1 tag](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md) to reference the stable and latest V1 action
+```yaml
+  - uses: @rezigned/setup-env-action
+    with:
+      env: |
+        GIT_SHORT_SHA: $(git rev-parse --short HEAD)
+      shell: bash
+```
+
+## Why?
+
+Github workflow currently [doesn't](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#env) allow user to set `env` value by referring to existing `env`.
+
+> *Variables in the env `map` cannot be defined in terms of other variables in the map.*
+
+For example, this won't work:
+
+```yml
+...
+env:
+  DOMAIN: https://example.com
+
+steps:
+  - name: Check status
+    env:
+      API_URL: ${{ env.DOMAIN }}/api
+```
+
+The current solution recommended by Github is to add extra step and add variable into `GITHUB_ENV` file.
+
+For example:
+
+```yml
+steps:
+  - name: Set up envs
+    run: |
+      echo "API_URL=$DOMAIN/api" >> $GITHUB_ENV
+
+  - name: Check status
+    run: |
+      echo $API_URL // https://example.com/api
+```

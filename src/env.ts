@@ -9,6 +9,12 @@ const INPUT_SHELL = 'shell'
 const INPUT_ENV = 'env'
 export const DEFAULT_SHELL = 'sh'
 
+/**
+ * Find all INPUT_* from ENV and return the key-value pairs in tuple form.
+ *
+ * @param envs
+ * @returns Inputs
+ */
 export function getInputs(envs: {}): Inputs {
   return Object.keys(envs)
     .filter(key => key.startsWith(INPUT_PREFIX) && key !== `${INPUT_PREFIX}ENV`)
@@ -17,6 +23,11 @@ export function getInputs(envs: {}): Inputs {
     }, [] as Inputs)
 }
 
+/**
+ * Read input from `env` and return the key-value pairs in tuple form.
+ *
+ * @returns Inputs
+ */
 export function getEnvInput(): Inputs {
   return core
     .getMultilineInput(INPUT_ENV)
@@ -41,6 +52,12 @@ export function getCurrentShell(): string {
   )
 }
 
+/**
+ * Evaluate the given input string and return the result.
+ *
+ * @param s string
+ * @returns Promise<string>
+ */
 export async function evaluate(s: string): Promise<string> {
   if (isPlainValue(s)) {
     return Promise.resolve(s)
@@ -52,6 +69,12 @@ export async function evaluate(s: string): Promise<string> {
   return result.stdout
 }
 
+/**
+ * Execute the whole pipeline (i.e. combine inputs, evaulate, export, etc.)
+ *
+ * @param env
+ * @returns
+ */
 export async function execute(env: {
   [key: string]: string | undefined
 }): Promise<{}> {

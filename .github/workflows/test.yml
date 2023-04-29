@@ -21,12 +21,9 @@ jobs:
       - uses: actions/checkout@v3
       - uses: ./
         with:
-          first-name: $USER
-          first_name: echo $USER
           env: |
-            A: $USER
-            B: echo 1
-            C: echo ${USER//r/p}
-      - run: env | sort
+            GIT_SHORT_SHA: $(git rev-parse --short HEAD)
+
+      - run: echo $AWESOME == $GIT_SHORT_SHA
         env:
-          AWESOME: ${{ env.FIRST_NAME }}
+          AWESOME: ${{ env.GIT_SHORT_SHA }}
