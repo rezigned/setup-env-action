@@ -1,6 +1,9 @@
 name: 'Set up environment variables action'
 description: 'Set up environment variables where the values are dynamically evaluated by shell'
 author: 'Marut Khumtong'
+branding:
+  icon: 'box'
+  color: 'blue'
 inputs:
   env:
     description: 'The key-value pairs of variables in YAML format where the key is the variable name and the value is a shell expression.'
