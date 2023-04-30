@@ -2,6 +2,7 @@
 
 <p>
   <a href="https://github.com/rezigned/setup-env-action/actions"><img alt="setup-env-action status" src="https://github.com/rezigned/setup-env-action/workflows/build-test/badge.svg"></a>
+  <a href="https://github.com/rezigned/setup-env-action/actions"><img alt="setup-env-action status" src="https://github.com/rezigned/setup-env-action/workflows/CodeQL/badge.svg"></a>
 </p>
 
 This action sets up environment variables by evaluating the values with shell command first.
@@ -12,7 +13,7 @@ This action sets up environment variables by evaluating the values with shell co
 
 ```yaml
 steps:
-  - uses: @rezigned/setup-env-action
+  - uses: rezigned/setup-env-action@v1
     with:
       env: |
         GIT_SHORT_SHA: $(git rev-parse --short HEAD)
@@ -26,7 +27,7 @@ steps:
 
 ```yaml
 steps:
-  - uses: @rezigned/setup-env-action
+  - uses: rezigned/setup-env-action@v1
     with:
       GIT_SHORT_SHA: $(git rev-parse --short HEAD)
 ```
@@ -36,7 +37,7 @@ steps:
 The `sh` shell is used by default. User can speicfy other shell by using `shell` input. For example:
 
 ```yaml
-  - uses: @rezigned/setup-env-action
+  - uses: rezigned/setup-env-action@v1
     with:
       env: |
         GIT_SHORT_SHA: $(git rev-parse --short HEAD)
