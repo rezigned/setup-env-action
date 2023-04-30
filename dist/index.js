@@ -112,7 +112,7 @@ exports.evaluate = evaluate;
  */
 function execute(env) {
     return __awaiter(this, void 0, void 0, function* () {
-        return pipe(env)(getRawInputs, concat(getEnvInputs()), map(([k, v]) => __awaiter(this, void 0, void 0, function* () { return [k, yield evaluate(v)]; })), Promise.all.bind(Promise), (r) => __awaiter(this, void 0, void 0, function* () { return (yield r).map(exportEnv); }));
+        return pipe(env)(getRawInputs, concat(getEnvInputs()), map(([k, v]) => __awaiter(this, void 0, void 0, function* () { return [k, yield evaluate(v)]; })), Promise.all.bind(Promise), (xs) => __awaiter(this, void 0, void 0, function* () { return xs.then(map(exportEnv)); }));
     });
 }
 exports.execute = execute;

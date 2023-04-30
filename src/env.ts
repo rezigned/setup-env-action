@@ -83,7 +83,7 @@ export async function execute(env: {
     concat(getEnvInputs()),
     map(async ([k, v]: Pair) => [k, await evaluate(v)]),
     Promise.all.bind(Promise),
-    async (r: Promise<Pair[]>) => (await r).map(exportEnv)
+    async (xs: Promise<Pair[]>) => xs.then(map(exportEnv))
   )
 }
 
