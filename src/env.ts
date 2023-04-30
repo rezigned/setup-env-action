@@ -15,7 +15,7 @@ export const DEFAULT_SHELL = 'sh'
  * @param envs
  * @returns Inputs
  */
-export function getInputs(envs: {}): Inputs {
+export function getRawInputs(envs: {}): Inputs {
   return Object.keys(envs)
     .filter(key => key.startsWith(INPUT_PREFIX) && key !== `${INPUT_PREFIX}ENV`)
     .reduce((env, key) => {
@@ -28,7 +28,7 @@ export function getInputs(envs: {}): Inputs {
  *
  * @returns Inputs
  */
-export function getEnvInput(): Inputs {
+export function getEnvInputs(): Inputs {
   return core
     .getMultilineInput(INPUT_ENV)
     .map((val: string) => val.split(/:\s*/) as Pair)
@@ -79,23 +79,28 @@ export async function execute(env: {
   [key: string]: string | undefined
 }): Promise<{}> {
   return pipe(env)(
-    getInputs,
-    concat(getEnvInput()),
+    getRawInputs,
+    concat(getEnvInputs()),
     map(async ([k, v]: Pair) => [k, await evaluate(v)]),
     Promise.all.bind(Promise),
-    async (r: Promise<Pair[]>) => {
-      return (await r).map(([k, v]: Pair) => {
-        const key = k.replace(INPUT_PREFIX, '')
-
-        // Warn if it overrides existing env
-        if (process.env[key]) {
-          core.warning(`Override existing $${key}`)
-        }
-
-        core.exportVariable(key, v)
-      })
-    }
+    async (r: Promise<Pair[]>) => (await r).map(exportEnv)
   )
+}
+
+/**
+ * Export environment variable and remove `INPUT_` prefix from the name.
+ *
+ * @param param Pair
+ */
+export function exportEnv([k, v]: Pair): void {
+  const key = k.replace(INPUT_PREFIX, '')
+
+  // Warn if it overrides existing env
+  if (process.env[key]) {
+    core.warning(`Override existing $${key}`)
+  }
+
+  core.exportVariable(key, v)
 }
 
 const ENV_VAR_REGEX = new RegExp(/^[\w\s-]+$/)
@@ -111,8 +116,10 @@ const ECHO_REGEX = new RegExp(/^\s*(echo|print|cat)/)
  * // transform('user') => 'echo user'
  */
 export function transform(s: string): string {
+  s = s.trimStart()
+
   if (ECHO_REGEX.test(s)) {
-    return s.trimStart()
+    return s
   }
 
   return `echo ${s}`
