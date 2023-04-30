@@ -83,7 +83,7 @@ export async function execute(env: {
     concat(getEnvInputs()),
     map(async ([k, v]: Pair) => [k, await evaluate(v)]),
     Promise.all.bind(Promise),
-    async (xs: Promise<Pair[]>) => xs.then(map(exportEnv))
+    bind(map(exportEnv))
   )
 }
 
@@ -154,4 +154,8 @@ export function dot(...fs: Function[]) {
 
 export function concat<T>(xs: T[]) {
   return (ys: T[]) => xs.concat(ys)
+}
+
+function bind<T, U>(f: (x: T) => U) {
+  return async (x: Promise<T>) => x.then(f)
 }
