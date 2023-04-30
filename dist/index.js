@@ -39,7 +39,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.concat = exports.dot = exports.map = exports.pipe = exports.isPlainValue = exports.transform = exports.execute = exports.evaluate = exports.getCurrentShell = exports.getEnvInput = exports.getInputs = exports.DEFAULT_SHELL = void 0;
+exports.concat = exports.dot = exports.map = exports.pipe = exports.isPlainValue = exports.transform = exports.exportEnv = exports.execute = exports.evaluate = exports.getCurrentShell = exports.getEnvInputs = exports.getRawInputs = exports.DEFAULT_SHELL = void 0;
 const core = __importStar(__nccwpck_require__(186));
 const exec_1 = __nccwpck_require__(514);
 const INPUT_PREFIX = 'INPUT_';
@@ -52,26 +52,26 @@ exports.DEFAULT_SHELL = 'sh';
  * @param envs
  * @returns Inputs
  */
-function getInputs(envs) {
+function getRawInputs(envs) {
     return Object.keys(envs)
         .filter(key => key.startsWith(INPUT_PREFIX) && key !== `${INPUT_PREFIX}ENV`)
         .reduce((env, key) => {
         return env.concat([[key, process.env[key] || '']]);
     }, []);
 }
-exports.getInputs = getInputs;
+exports.getRawInputs = getRawInputs;
 /**
  * Read input from `env` and return the key-value pairs in tuple form.
  *
  * @returns Inputs
  */
-function getEnvInput() {
+function getEnvInputs() {
     return core
         .getMultilineInput(INPUT_ENV)
         .map((val) => val.split(/:\s*/))
         .filter(pair => pair.length === 2 && pair[1] !== '');
 }
-exports.getEnvInput = getEnvInput;
+exports.getEnvInputs = getEnvInputs;
 /**
  * Find the current shell by looking up in the following orders:
  *
@@ -112,19 +112,24 @@ exports.evaluate = evaluate;
  */
 function execute(env) {
     return __awaiter(this, void 0, void 0, function* () {
-        return pipe(env)(getInputs, concat(getEnvInput()), map(([k, v]) => __awaiter(this, void 0, void 0, function* () { return [k, yield evaluate(v)]; })), Promise.all.bind(Promise), (r) => __awaiter(this, void 0, void 0, function* () {
-            return (yield r).map(([k, v]) => {
-                const key = k.replace(INPUT_PREFIX, '');
-                // Warn if it overrides existing env
-                if (process.env[key]) {
-                    core.warning(`Override existing $${key}`);
-                }
-                core.exportVariable(key, v);
-            });
-        }));
+        return pipe(env)(getRawInputs, concat(getEnvInputs()), map(([k, v]) => __awaiter(this, void 0, void 0, function* () { return [k, yield evaluate(v)]; })), Promise.all.bind(Promise), (r) => __awaiter(this, void 0, void 0, function* () { return (yield r).map(exportEnv); }));
     });
 }
 exports.execute = execute;
+/**
+ * Export environment variable and remove `INPUT_` prefix from the name.
+ *
+ * @param param Pair
+ */
+function exportEnv([k, v]) {
+    const key = k.replace(INPUT_PREFIX, '');
+    // Warn if it overrides existing env
+    if (process.env[key]) {
+        core.warning(`Override existing $${key}`);
+    }
+    core.exportVariable(key, v);
+}
+exports.exportEnv = exportEnv;
 const ENV_VAR_REGEX = new RegExp(/^[\w\s-]+$/);
 const ENV_NAME_REGEX = new RegExp(`^${ENV_VAR_REGEX.source}`);
 const ECHO_REGEX = new RegExp(/^\s*(echo|print|cat)/);
@@ -137,8 +142,9 @@ const ECHO_REGEX = new RegExp(/^\s*(echo|print|cat)/);
  * // transform('user') => 'echo user'
  */
 function transform(s) {
+    s = s.trimStart();
     if (ECHO_REGEX.test(s)) {
-        return s.trimStart();
+        return s;
     }
     return `echo ${s}`;
 }

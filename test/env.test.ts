@@ -5,13 +5,13 @@ import {
   dot,
   evaluate,
   execute,
+  exportEnv,
   getCurrentShell,
-  getEnvInput,
-  getInputs,
+  getEnvInputs,
+  getRawInputs,
   isPlainValue,
   transform
 } from '../src/env'
-import {getInput} from '@actions/core'
 
 afterEach(() => {
   // Clean up all INPUT_* keys
@@ -22,23 +22,23 @@ afterEach(() => {
   })
 })
 
-describe(getInputs, () => {
+describe(getRawInputs, () => {
   it('returns all key/val pairs from ENV variable', () => {
     process.env['INPUT_FIRST_NAME'] = 'Alice'
     process.env['INPUT_FIRST-NAME'] = 'Bob'
 
-    expect(getInputs(process.env)).toEqual([
+    expect(getRawInputs(process.env)).toEqual([
       ['INPUT_FIRST_NAME', 'Alice'],
       ['INPUT_FIRST-NAME', 'Bob']
     ])
   })
 })
 
-describe(getEnvInput, () => {
+describe(getEnvInputs, () => {
   it('returns key/val pairs from INPUT_ENV', () => {
     process.env['INPUT_ENV'] = 'A: echo 1\nB: echo 2\nC:'
 
-    expect(getEnvInput()).toEqual([
+    expect(getEnvInputs()).toEqual([
       ['A', 'echo 1'],
       ['B', 'echo 2']
     ])
@@ -98,6 +98,25 @@ describe(evaluate, () => {
         await expect(result).resolves.toBe(process.env.USER + os.EOL)
       })
     )
+  })
+})
+
+describe(exportEnv, () => {
+  it('exports environment variables', () => {
+    ;[
+      ['INPUT_NAME', 'john', 'NAME'],
+      ['USERNAME', 'john', 'USERNAME']
+    ].forEach(([k, v, expectedKey]) => {
+      expect(process.env[k]).toBe(undefined)
+      expect(process.env[expectedKey]).toBe(undefined)
+
+      process.env[k] = v
+
+      exportEnv([k, v])
+
+      expect(process.env[k]).toBe(v)
+      expect(process.env[expectedKey]).toBe(v)
+    })
   })
 })
 
