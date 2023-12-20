@@ -23,7 +23,8 @@ steps:
 ```
 **Using variable name at input-level**:
 
-> **Warning**: Although this works. Github will send a warning message like 'VAR NAME' is not a valid input. This is because Github only allows input names defined in `action.yml`.
+> [!WARNING]
+> Although this works. Github will send a warning message like 'VAR NAME' is not a valid input. This is because Github only allows input names defined in `action.yml`.
 
 ```yaml
 steps:
